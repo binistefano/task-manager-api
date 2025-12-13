@@ -56,8 +56,8 @@ The project follows a strict **Layered Architecture** to ensure separation of co
 
 1.  **Clone the repository**
     ```bash
-    git clone [https://github.com/stefanobini99/taskmanager.git](https://github.com/stefanobini99/taskmanager.git)
-    cd taskmanager
+    git clone [https://github.com/stefanobini99/task-manager-api.git](https://github.com/stefanobini99/task-manager-api.git)
+    cd task-manager-api
     ```
 
 2.  **Build the project**
@@ -84,7 +84,7 @@ The application is currently configured to use an in-memory H2 database for deve
 **File:** `src/main/resources/application.properties`
 
 ```properties
-spring.application.name=taskmanager
+spring.application.name=TaskManager
 spring.datasource.url=jdbc:h2:mem:taskdb
 spring.datasource.driverClassName=org.h2.Driver
 spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
