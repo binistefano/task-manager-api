@@ -5,6 +5,7 @@ import com.stefanobini.taskmanager.dto.TaskResponse;
 import com.stefanobini.taskmanager.entity.Task;
 import com.stefanobini.taskmanager.entity.TaskStatus;
 import com.stefanobini.taskmanager.exception.TaskNotFoundException;
+import com.stefanobini.taskmanager.mapper.TaskMapper;
 import com.stefanobini.taskmanager.repository.TaskRepository;
 import com.stefanobini.taskmanager.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -18,20 +19,16 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
 
     @Override
     @Transactional
     public TaskResponse createTask(TaskRequest request) {
-        Task task = Task.builder()
-                .title(request.title())
-                .description(request.description())
-                .status(request.status() == null ? TaskStatus.TODO : request.status())
-                .dueDate(request.dueDate())
-                .build();
+        Task task = taskMapper.toEntity(request);
 
         Task savedTask = taskRepository.save(task);
 
-        return mapToResponse(savedTask);
+        return taskMapper.toResponse(savedTask);
     }
 
     @Override
