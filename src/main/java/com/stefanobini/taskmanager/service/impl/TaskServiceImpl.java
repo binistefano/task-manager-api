@@ -9,6 +9,8 @@ import com.stefanobini.taskmanager.mapper.TaskMapper;
 import com.stefanobini.taskmanager.repository.TaskRepository;
 import com.stefanobini.taskmanager.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,18 +34,16 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskResponse> getAllTasks() {
-        List<Task> tasks = taskRepository.findAll();
-        return tasks.stream()
-                .map(this::mapToResponse)
-                .toList();
+    public Page<TaskResponse> getAllTasks(Pageable pageable) {
+        Page<Task> page = taskRepository.findAll(pageable);
+        return page.map(taskMapper::toResponse);
     }
 
     @Override
     public TaskResponse getTaskById(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + id));
-        return mapToResponse(task);
+        return taskMapper.toResponse(task);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class TaskServiceImpl implements TaskService {
 
         Task updatedTask = taskRepository.save(task);
 
-        return mapToResponse(updatedTask);
+        return taskMapper.toResponse(updatedTask);
     }
 
     @Override
@@ -73,19 +73,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<TaskResponse> getTasksByStatus(TaskStatus status) {
         return taskRepository.findByStatus(status).stream()
-                .map(this::mapToResponse)
+                .map(taskMapper::toResponse)
                 .toList();
-    }
-
-    private TaskResponse mapToResponse(Task task) {
-        return new TaskResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus(),
-                task.getDueDate(),
-                task.getCreatedAt(),
-                task.getUpdatedAt()
-        );
     }
 }
