@@ -31,13 +31,14 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getAllTasks(
+            @RequestParam(required = false) TaskStatus status,
             @PageableDefault(
                     size = 20,
                     sort = "createdAt",
                     direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        return ResponseEntity.ok(taskService.getAllTasks(pageable));
+        return ResponseEntity.ok(taskService.getTasks(status, pageable));
     }
 
     @GetMapping("/{id}")
@@ -54,10 +55,5 @@ public class TaskController {
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<TaskResponse>> getTasksByStatus(@RequestParam TaskStatus status) {
-        return ResponseEntity.ok(taskService.getTasksByStatus(status));
     }
 }
