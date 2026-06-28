@@ -34,12 +34,6 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Page<TaskResponse> getAllTasks(Pageable pageable) {
-        Page<Task> page = taskRepository.findAll(pageable);
-        return page.map(taskMapper::toResponse);
-    }
-
-    @Override
     public TaskResponse getTaskById(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + id));
@@ -71,9 +65,13 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskResponse> getTasksByStatus(TaskStatus status) {
-        return taskRepository.findByStatus(status).stream()
-                .map(taskMapper::toResponse)
-                .toList();
+    public Page<TaskResponse> getTasks(TaskStatus status, Pageable pageable) {
+        if (status == null) {
+            return taskRepository.findAll(pageable)
+                    .map(taskMapper::toResponse);
+        }
+
+        return taskRepository.findByStatus(status, pageable)
+                .map(taskMapper::toResponse);
     }
 }
