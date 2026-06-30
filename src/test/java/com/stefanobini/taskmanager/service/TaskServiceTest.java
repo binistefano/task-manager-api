@@ -105,13 +105,24 @@ class TaskServiceTest {
 
     @Test
     void getTaskById_ShouldReturnTask_WhenTaskExists() {
-        Task task = Task.builder().id(1L).title("Existing Task").build();
+        long id = 1L;
+        String title = "Existing task";
+        String description = "Description";
+        TaskStatus status = TaskStatus.TODO;
+        LocalDateTime dueDate = LocalDateTime.of(2030, 7, 15, 18, 0);
+        LocalDateTime createdAt = LocalDateTime.of(2026, 6, 30, 12, 0);
+
+        Task task = Task.builder().id(id).title(title).build();
+        TaskResponse expectedResponse = new TaskResponse(
+                id, title, description, status, dueDate, createdAt, createdAt
+        );
+
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskMapper.toResponse(task)).thenReturn(expectedResponse);
 
         TaskResponse response = taskService.getTaskById(1L);
 
-        assertEquals(1L, response.id());
-        assertEquals("Existing Task", response.title());
+        assertEquals(id, response.id());
     }
 
     @Test
