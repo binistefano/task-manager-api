@@ -15,8 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,5 +70,28 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.status").value(status.name()));
 
         verify(taskService).createTask(any(TaskRequest.class));
+    }
+
+    @Test
+    void createTask_ShouldReturnBadRequest() throws Exception {
+        TaskRequest request = new TaskRequest(
+                "",
+                "Description",
+                TaskStatus.TODO,
+                LocalDateTime.of(2026, 7, 15, 18, 0)
+        );
+
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("Validation Failed"))
+                .andExpect(jsonPath("$.path").value("/api/tasks"))
+                .andExpect(jsonPath("$.details").isArray())
+                .andExpect(jsonPath("$.details[0]").exists());
+
+        verify(taskService, never()).createTask(any());
     }
 }
