@@ -15,5 +15,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+
+    container_name: task-manager-app
+
+    depends_on:
+      - postgres
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+    ports:
+      - "8080:8080"
+
+    env_file:
+      - ../.env
+
 volumes:
   postgres_data:
