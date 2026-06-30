@@ -10,6 +10,7 @@ import com.stefanobini.taskmanager.repository.TaskRepository;
 import com.stefanobini.taskmanager.service.impl.TaskServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,59 +35,72 @@ class TaskServiceTest {
 
     @Test
     void createTask_ShouldReturnTaskResponse_WhenValidRequest() {
-        LocalDateTime dueDate = LocalDateTime.now().plusDays(1);
+        // Arrange
+        LocalDateTime dueDate = LocalDateTime.of(2030, 7, 15, 18, 0);
+        LocalDateTime createdAt = LocalDateTime.of(2026, 6, 30, 12, 0);
+
+        String title = "Test Task";
+        String description = "Description";
+        TaskStatus status = TaskStatus.TODO;
 
         TaskRequest request = new TaskRequest(
-                "Test Task",
-                "Description",
-                TaskStatus.TODO,
+                title,
+                description,
+                status,
                 dueDate
         );
 
-        // Define a mock entity instance that the mapper will "return"
         Task taskEntity = Task.builder()
-                .title("Test Task")
-                .description("Description")
-                .status(TaskStatus.TODO)
+                .title(title)
+                .description(description)
+                .status(status)
                 .dueDate(dueDate)
                 .build();
 
         Task savedTask = Task.builder()
                 .id(1L)
-                .title("Test Task")
-                .status(TaskStatus.TODO)
+                .title(title)
+                .description(description)
+                .status(status)
+                .dueDate(dueDate)
+                .createdAt(createdAt)
+                .updatedAt(createdAt)
                 .build();
 
-        // Define a mock response instance that the mapper will "return"
         TaskResponse expectedResponse = new TaskResponse(
                 1L,
-                "Test Task",
-                "Description",
-                TaskStatus.TODO,
+                title,
+                description,
+                status,
                 dueDate,
-                LocalDateTime.now(),
-                LocalDateTime.now()
+                createdAt,
+                createdAt
         );
 
-        // 1. Mock the mapper converting Request -> Entity
         when(taskMapper.toEntity(request)).thenReturn(taskEntity);
-
-        // 2. Mock the repository saving the Entity
         when(taskRepository.save(any(Task.class))).thenReturn(savedTask);
-
-        // 3. Mock the mapper converting Saved Entity -> Response
         when(taskMapper.toResponse(savedTask)).thenReturn(expectedResponse);
 
-        TaskResponse response = taskService.createTask(request);
+        // Act
+        TaskResponse actual = taskService.createTask(request);
 
-        assertNotNull(response);
-        assertEquals(savedTask.getId(), response.id());
-        assertEquals("Test Task", response.title());
+        // Assert
+        assertEquals(expectedResponse, actual);
 
-        // Verify repository was actually called exactly once
-        verify(taskMapper, times(1)).toEntity(any(TaskRequest.class));
-        verify(taskRepository, times(1)).save(any(Task.class));
-        verify(taskMapper, times(1)).toResponse(any(Task.class));
+        ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
+
+        verify(taskRepository).save(taskCaptor.capture());
+
+        Task persistedTask = taskCaptor.getValue();
+
+        assertEquals(title, persistedTask.getTitle());
+        assertEquals(description, persistedTask.getDescription());
+        assertEquals(status, persistedTask.getStatus());
+        assertEquals(dueDate, persistedTask.getDueDate());
+
+        verify(taskMapper).toEntity(request);
+        verify(taskMapper).toResponse(savedTask);
+        verifyNoMoreInteractions(taskMapper, taskRepository);
     }
 
     @Test
