@@ -17,9 +17,19 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
+# Create a dedicated user and group
+RUN groupadd --system app && \
+    useradd --system --gid app app
+
 COPY --from=builder \
     /app/target/taskmanager-0.0.1-SNAPSHOT.jar \
     app.jar
+
+# Give ownership of the application files
+RUN chown -R app:app /app
+
+# Switch to the non-root user
+USER app
 
 EXPOSE 8080
 
