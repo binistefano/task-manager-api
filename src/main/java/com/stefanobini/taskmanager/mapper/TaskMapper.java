@@ -25,7 +25,7 @@ public class TaskMapper {
         return Task.builder()
                 .title(request.title())
                 .description(request.description())
-                .status(request.status() == null ? TaskStatus.TODO : request.status())
+                .status(request.status())
                 .dueDate(request.dueDate())
                 .build();
     }
