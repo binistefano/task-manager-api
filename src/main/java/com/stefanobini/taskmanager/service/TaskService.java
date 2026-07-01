@@ -1,5 +1,6 @@
 package com.stefanobini.taskmanager.service;
 
+import com.stefanobini.taskmanager.dto.TaskFilter;
 import com.stefanobini.taskmanager.dto.TaskRequest;
 import com.stefanobini.taskmanager.dto.TaskResponse;
 import com.stefanobini.taskmanager.entity.TaskStatus;
@@ -15,5 +16,5 @@ public interface TaskService {
 
     void deleteTask(Long id);
 
-    Page<TaskResponse> getTasks(TaskStatus status, String title, Pageable pageable);
+    Page<TaskResponse> getTasks(TaskFilter filter, Pageable pageable);
 }
