@@ -1,5 +1,6 @@
 package com.stefanobini.taskmanager.controller;
 
+import com.stefanobini.taskmanager.dto.TaskFilter;
 import com.stefanobini.taskmanager.dto.TaskRequest;
 import com.stefanobini.taskmanager.dto.TaskResponse;
 import com.stefanobini.taskmanager.entity.TaskStatus;
@@ -39,7 +40,10 @@ public class TaskController {
                     direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        return ResponseEntity.ok(taskService.getTasks(status, title, pageable));
+        return ResponseEntity.ok(taskService.getTasks(
+                new TaskFilter (status, title),
+                pageable)
+        );
     }
 
     @GetMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.stefanobini.taskmanager.service.impl;
 
+import com.stefanobini.taskmanager.dto.TaskFilter;
 import com.stefanobini.taskmanager.dto.TaskRequest;
 import com.stefanobini.taskmanager.dto.TaskResponse;
 import com.stefanobini.taskmanager.entity.Task;
@@ -67,10 +68,10 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Page<TaskResponse> getTasks(TaskStatus status, String title, Pageable pageable) {
+    public Page<TaskResponse> getTasks(TaskFilter filter, Pageable pageable) {
         Specification<Task> specification =
-                TaskSpecification.hasStatus(status)
-                        .and(TaskSpecification.hasTitle(title));
+                TaskSpecification.hasStatus(filter.status())
+                        .and(TaskSpecification.hasTitle(filter.title()));
 
         return taskRepository.findAll(
                 specification,
