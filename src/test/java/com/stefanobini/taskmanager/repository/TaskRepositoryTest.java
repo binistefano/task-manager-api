@@ -2,6 +2,7 @@ package com.stefanobini.taskmanager.repository;
 
 import com.stefanobini.taskmanager.entity.Task;
 import com.stefanobini.taskmanager.entity.TaskStatus;
+import com.stefanobini.taskmanager.specification.TaskSpecification;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -59,7 +60,10 @@ class TaskRepositoryTest {
 
         repository.saveAll(List.of(todoTask, inProgresTask, doneTask));
 
-        Page<Task> result = repository.findByStatus(TaskStatus.TODO, Pageable.ofSize(5));
+        Page<Task> result = repository.findAll(
+                TaskSpecification.hasStatus(TaskStatus.TODO),
+                Pageable.ofSize(5)
+        );
 
         assertEquals(1, result.getNumberOfElements());
 

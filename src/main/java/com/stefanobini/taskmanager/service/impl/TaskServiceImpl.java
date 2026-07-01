@@ -8,9 +8,11 @@ import com.stefanobini.taskmanager.exception.TaskNotFoundException;
 import com.stefanobini.taskmanager.mapper.TaskMapper;
 import com.stefanobini.taskmanager.repository.TaskRepository;
 import com.stefanobini.taskmanager.service.TaskService;
+import com.stefanobini.taskmanager.specification.TaskSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,13 +67,14 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Page<TaskResponse> getTasks(TaskStatus status, Pageable pageable) {
-        if (status == null) {
-            return taskRepository.findAll(pageable)
-                    .map(taskMapper::toResponse);
-        }
+    public Page<TaskResponse> getTasks(TaskStatus status, String title, Pageable pageable) {
+        Specification<Task> specification =
+                TaskSpecification.hasStatus(status)
+                        .and(TaskSpecification.hasTitle(title));
 
-        return taskRepository.findByStatus(status, pageable)
-                .map(taskMapper::toResponse);
+        return taskRepository.findAll(
+                specification,
+                pageable
+        ).map(taskMapper::toResponse);
     }
 }

@@ -32,13 +32,14 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getAllTasks(
             @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) String title,
             @PageableDefault(
                     size = 20,
                     sort = "createdAt",
                     direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        return ResponseEntity.ok(taskService.getTasks(status, pageable));
+        return ResponseEntity.ok(taskService.getTasks(status, title, pageable));
     }
 
     @GetMapping("/{id}")

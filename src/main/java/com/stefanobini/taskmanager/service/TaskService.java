@@ -15,5 +15,5 @@ public interface TaskService {
 
     void deleteTask(Long id);
 
-    Page<TaskResponse> getTasks(TaskStatus status, Pageable pageable);
+    Page<TaskResponse> getTasks(TaskStatus status, String title, Pageable pageable);
 }
