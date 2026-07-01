@@ -1,5 +1,6 @@
 package com.stefanobini.taskmanager.service.impl;
 
+import com.stefanobini.taskmanager.config.TaskProperties;
 import com.stefanobini.taskmanager.dto.TaskFilter;
 import com.stefanobini.taskmanager.dto.TaskRequest;
 import com.stefanobini.taskmanager.dto.TaskResponse;
@@ -12,6 +13,7 @@ import com.stefanobini.taskmanager.service.TaskService;
 import com.stefanobini.taskmanager.specification.TaskSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class TaskServiceImpl implements TaskService {
     private static final Logger log =
             LoggerFactory.getLogger(TaskServiceImpl.class);
 
+    private final TaskProperties taskProperties;
+
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
 
@@ -34,6 +38,10 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     public TaskResponse createTask(TaskRequest request) {
         Task task = taskMapper.toEntity(request);
+
+        if (task.getStatus() == null) {
+            task.setStatus(taskProperties.defaultStatus());
+        }
 
         log.info("Creating task with title={}", request.title());
         Task savedTask = taskRepository.save(task);
@@ -83,9 +91,15 @@ public class TaskServiceImpl implements TaskService {
                 TaskSpecification.hasStatus(filter.status())
                         .and(TaskSpecification.hasTitle(filter.title()));
 
+        Pageable limitedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                Math.min(pageable.getPageSize(), taskProperties.maxPageSize()),
+                pageable.getSort()
+        );
+
         return taskRepository.findAll(
                 specification,
-                pageable
+                limitedPageable
         ).map(taskMapper::toResponse);
     }
 }
