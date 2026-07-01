@@ -2,6 +2,8 @@ package com.stefanobini.taskmanager.exception;
 
 import com.stefanobini.taskmanager.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,10 +15,12 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException ex,
                                                             HttpServletRequest request) {
+        log.warn("Task not found ", ex);
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -31,6 +35,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex,
                                                                 HttpServletRequest request) {
+        log.warn("Invalid arguments ", ex);
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -51,6 +56,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex,
                                                                HttpServletRequest request) {
+        log.error("Unexpected error ", ex);
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "An unexpected error occurred",

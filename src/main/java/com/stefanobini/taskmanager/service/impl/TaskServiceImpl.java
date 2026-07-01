@@ -16,12 +16,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
+    private static final Logger log =
+            LoggerFactory.getLogger(TaskServiceImpl.class);
 
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
@@ -31,7 +35,9 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse createTask(TaskRequest request) {
         Task task = taskMapper.toEntity(request);
 
+        log.info("Creating task with title={}", request.title());
         Task savedTask = taskRepository.save(task);
+        log.info("Task created successfully with id={}", savedTask.getId());
 
         return taskMapper.toResponse(savedTask);
     }
@@ -46,6 +52,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional
     public TaskResponse updateTask(Long id, TaskRequest request) {
+        log.info("Updating task {}", id);
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + id));
 
@@ -55,6 +62,7 @@ public class TaskServiceImpl implements TaskService {
         task.setDueDate(request.dueDate());
 
         Task updatedTask = taskRepository.save(task);
+        log.info("Task {} updated", id);
 
         return taskMapper.toResponse(updatedTask);
     }
@@ -64,7 +72,9 @@ public class TaskServiceImpl implements TaskService {
         if (!taskRepository.existsById(id)) {
             throw new TaskNotFoundException("Task not found with id: " + id);
         }
+        log.info("Deleting task {}", id);
         taskRepository.deleteById(id);
+        log.info("Task {} deleted", id);
     }
 
     @Override
