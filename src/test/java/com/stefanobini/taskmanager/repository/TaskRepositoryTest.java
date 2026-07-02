@@ -104,4 +104,27 @@ class TaskRepositoryTest {
                                 task.getTitle().toLowerCase().contains("docker"))
         );
     }
+
+    @Test
+    void findAll_WithStatusAndTitleSpecification_ShouldReturnOnlyMatchingTasks() {
+        Task task1 = buildTask("Buy milk", TaskStatus.TODO);
+        Task task2 = buildTask("Meeting notes", TaskStatus.TODO);
+        Task task3 = buildTask("Buy bread", TaskStatus.DONE);
+        Task task4 = buildTask("Deploy Dcoker", TaskStatus.DONE);
+
+        repository.saveAll(List.of(task1, task2, task3, task4));
+
+        Specification<Task> specification = TaskSpecification.hasStatus(TaskStatus.TODO)
+                .and(TaskSpecification.titleContains("buy"));
+
+        var result = repository.findAll(specification, Pageable.unpaged());
+
+        assertEquals(1, result.getTotalElements());
+
+        Task matchingTask = result.getContent().getFirst();
+
+        assertEquals(TaskStatus.TODO, matchingTask.getStatus());
+        assertEquals("Buy milk", matchingTask.getTitle());
+
+    }
 }
