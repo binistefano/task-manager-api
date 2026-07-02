@@ -1,12 +1,9 @@
 package com.stefanobini.taskmanager.specification;
 
-import ch.qos.logback.classic.pattern.ClassOfCallerConverter;
 import com.stefanobini.taskmanager.entity.Task;
 import com.stefanobini.taskmanager.entity.TaskStatus;
-import org.springframework.boot.autoconfigure.rsocket.RSocketProperties;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public final class TaskSpecification {
