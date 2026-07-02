@@ -1,5 +1,6 @@
 package com.stefanobini.taskmanager.repository;
 
+import com.stefanobini.taskmanager.config.PostgresTestContainer;
 import com.stefanobini.taskmanager.entity.Task;
 import com.stefanobini.taskmanager.entity.TaskStatus;
 import com.stefanobini.taskmanager.specification.TaskSpecification;
@@ -11,11 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,26 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
-class TaskRepositoryTest {
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
-
+class TaskRepositoryTest extends PostgresTestContainer {
     @Autowired
     private TaskRepository repository;
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-
-        registry.add("spring.datasource.url",
-                postgres::getJdbcUrl);
-
-        registry.add("spring.datasource.username",
-                postgres::getUsername);
-
-        registry.add("spring.datasource.password",
-                postgres::getPassword);
-    }
 
     @BeforeEach
     void cleanDatabase() {
@@ -92,8 +71,9 @@ class TaskRepositoryTest {
         assertEquals("Task in todo", task.getTitle());
         assertEquals(TaskStatus.TODO, task.getStatus());
     }
+
     @Test
-    void titleContains_ShouldReturnMatchingTasks(){
+    void titleContains_ShouldReturnMatchingTasks() {
         Task taskDocker1 = buildTask("Add Dockerfile");
         Task taskDocker2 = buildTask("Infastructure: add docker-compose file");
         Task taskNotDocker = buildTask("Add REST endpoints");
@@ -119,7 +99,7 @@ class TaskRepositoryTest {
         Task task1 = buildTask("Buy milk", TaskStatus.TODO);
         Task task2 = buildTask("Meeting notes", TaskStatus.TODO);
         Task task3 = buildTask("Buy bread", TaskStatus.DONE);
-        Task task4 = buildTask("Deploy Dcoker", TaskStatus.DONE);
+        Task task4 = buildTask("Deploy Docker", TaskStatus.DONE);
 
         repository.saveAll(List.of(task1, task2, task3, task4));
 
@@ -140,17 +120,17 @@ class TaskRepositoryTest {
     @Test
     void dueBefore_ShouldReturnMatchingTasks() {
         Task task1 = buildTask(
-                "Task",
+                "Closer dueDatest Task",
                 TaskStatus.TODO,
                 LocalDateTime.of(2030, 1, 1, 15, 15)
         );
         Task task2 = buildTask(
-                "Task",
+                "Middle dueDate Task",
                 TaskStatus.TODO,
                 LocalDateTime.of(2030, 6, 1, 15, 15)
         );
         Task task3 = buildTask(
-                "Task",
+                "Further dueDate Task",
                 TaskStatus.TODO,
                 LocalDateTime.of(2031, 1, 1, 15, 15)
         );
@@ -173,17 +153,17 @@ class TaskRepositoryTest {
     @Test
     void dueAfter_ShouldReturnMatchingTasks() {
         Task task1 = buildTask(
-                "Task",
+                "Closer dueDate Task",
                 TaskStatus.TODO,
                 LocalDateTime.of(2030, 1, 1, 15, 15)
         );
         Task task2 = buildTask(
-                "Task",
+                "Middle dueDate Task",
                 TaskStatus.TODO,
                 LocalDateTime.of(2030, 6, 1, 15, 15)
         );
         Task task3 = buildTask(
-                "Task",
+                "Further dueDate Task",
                 TaskStatus.TODO,
                 LocalDateTime.of(2031, 1, 1, 15, 15)
         );
