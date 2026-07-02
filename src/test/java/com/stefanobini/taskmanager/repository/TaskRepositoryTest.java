@@ -3,12 +3,14 @@ package com.stefanobini.taskmanager.repository;
 import com.stefanobini.taskmanager.entity.Task;
 import com.stefanobini.taskmanager.entity.TaskStatus;
 import com.stefanobini.taskmanager.specification.TaskSpecification;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -43,6 +46,15 @@ class TaskRepositoryTest {
                 postgres::getPassword);
     }
 
+    @BeforeEach
+    void cleanDatabase() {
+        repository.deleteAll();
+    }
+
+    private Task buildTask(String title) {
+        return buildTask(title, TaskStatus.IN_PROGRESS);
+    }
+
     private Task buildTask(String title, TaskStatus status) {
         return Task.builder()
                 .title(title)
@@ -53,7 +65,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void findByStatus_ShouldReturnOnlyMatchingTasks() {
+    void hasStatus_ShouldReturnOnlyMatchingTasks() {
         Task todoTask = buildTask("Task in todo", TaskStatus.TODO);
         Task inProgresTask = buildTask("Task in progress", TaskStatus.IN_PROGRESS);
         Task doneTask = buildTask("Task in done", TaskStatus.DONE);
@@ -62,7 +74,7 @@ class TaskRepositoryTest {
 
         Page<Task> result = repository.findAll(
                 TaskSpecification.hasStatus(TaskStatus.TODO),
-                Pageable.ofSize(5)
+                Pageable.unpaged()
         );
 
         assertEquals(1, result.getNumberOfElements());
@@ -70,5 +82,26 @@ class TaskRepositoryTest {
         Task task = result.getContent().getFirst();
         assertEquals("Task in todo", task.getTitle());
         assertEquals(TaskStatus.TODO, task.getStatus());
+    }
+    @Test
+    void titleContains_ShouldReturnMatchingTasks(){
+        Task taskDocker1 = buildTask("Add Dockerfile");
+        Task taskDocker2 = buildTask("Infastructure: add docker-compose file");
+        Task taskNotDocker = buildTask("Add REST endpoints");
+
+        repository.saveAll(List.of(taskDocker1, taskDocker2, taskNotDocker));
+
+        Specification<Task> specification = TaskSpecification.titleContains("doCKer");
+
+        var result = repository.findAll(specification, Pageable.unpaged());
+
+        assertEquals(2, result.getTotalElements());
+
+        assertTrue(
+                result.getContent()
+                        .stream()
+                        .allMatch(task ->
+                                task.getTitle().toLowerCase().contains("docker"))
+        );
     }
 }
