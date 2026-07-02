@@ -3,7 +3,6 @@ package com.stefanobini.taskmanager.controller;
 import com.stefanobini.taskmanager.dto.TaskFilter;
 import com.stefanobini.taskmanager.dto.TaskRequest;
 import com.stefanobini.taskmanager.dto.TaskResponse;
-import com.stefanobini.taskmanager.entity.TaskStatus;
 import com.stefanobini.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +13,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -32,18 +29,14 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getAllTasks(
-            @RequestParam(required = false) TaskStatus status,
-            @RequestParam(required = false) String title,
+            @ModelAttribute TaskFilter filter,
             @PageableDefault(
                     size = 20,
                     sort = "createdAt",
                     direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        return ResponseEntity.ok(taskService.getTasks(
-                new TaskFilter (status, title),
-                pageable)
-        );
+        return ResponseEntity.ok(taskService.getTasks(filter, pageable));
     }
 
     @GetMapping("/{id}")
