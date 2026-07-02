@@ -5,23 +5,20 @@ import com.stefanobini.taskmanager.dto.TaskFilter;
 import com.stefanobini.taskmanager.dto.TaskRequest;
 import com.stefanobini.taskmanager.dto.TaskResponse;
 import com.stefanobini.taskmanager.entity.Task;
-import com.stefanobini.taskmanager.entity.TaskStatus;
 import com.stefanobini.taskmanager.exception.TaskNotFoundException;
 import com.stefanobini.taskmanager.mapper.TaskMapper;
 import com.stefanobini.taskmanager.repository.TaskRepository;
 import com.stefanobini.taskmanager.service.TaskService;
 import com.stefanobini.taskmanager.specification.TaskSpecification;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -89,7 +86,13 @@ public class TaskServiceImpl implements TaskService {
     public Page<TaskResponse> getTasks(TaskFilter filter, Pageable pageable) {
         Specification<Task> specification =
                 TaskSpecification.hasStatus(filter.status())
-                        .and(TaskSpecification.hasTitle(filter.title()));
+                        .and(TaskSpecification.titleContains(filter.title()))
+                        .and(TaskSpecification.dueBefore(filter.dueBefore()))
+                        .and(TaskSpecification.dueAfter(filter.dueAfter()))
+                        .and(TaskSpecification.createdBefore(filter.createdBefore()))
+                        .and(TaskSpecification.createdAfter(filter.createdAfter()))
+                        .and(TaskSpecification.updatedBefore(filter.updatedBefore()))
+                        .and(TaskSpecification.updatedAfter(filter.updatedAfter()));
 
         Pageable limitedPageable = PageRequest.of(
                 pageable.getPageNumber(),
