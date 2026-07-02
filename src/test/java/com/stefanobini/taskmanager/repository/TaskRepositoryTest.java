@@ -64,6 +64,15 @@ class TaskRepositoryTest {
                 .build();
     }
 
+    private Task buildTask(String title, TaskStatus status, LocalDateTime dueDate) {
+        return Task.builder()
+                .title(title)
+                .description("Description")
+                .status(status)
+                .dueDate(dueDate)
+                .build();
+    }
+
     @Test
     void hasStatus_ShouldReturnOnlyMatchingTasks() {
         Task todoTask = buildTask("Task in todo", TaskStatus.TODO);
@@ -106,7 +115,7 @@ class TaskRepositoryTest {
     }
 
     @Test
-    void findAll_WithStatusAndTitleSpecification_ShouldReturnOnlyMatchingTasks() {
+    void hasStatusAndTitle_ShouldReturnOnlyMatchingTasks() {
         Task task1 = buildTask("Buy milk", TaskStatus.TODO);
         Task task2 = buildTask("Meeting notes", TaskStatus.TODO);
         Task task3 = buildTask("Buy bread", TaskStatus.DONE);
@@ -126,5 +135,71 @@ class TaskRepositoryTest {
         assertEquals(TaskStatus.TODO, matchingTask.getStatus());
         assertEquals("Buy milk", matchingTask.getTitle());
 
+    }
+
+    @Test
+    void dueBefore_ShouldReturnMatchingTasks() {
+        Task task1 = buildTask(
+                "Task",
+                TaskStatus.TODO,
+                LocalDateTime.of(2030, 1, 1, 15, 15)
+        );
+        Task task2 = buildTask(
+                "Task",
+                TaskStatus.TODO,
+                LocalDateTime.of(2030, 6, 1, 15, 15)
+        );
+        Task task3 = buildTask(
+                "Task",
+                TaskStatus.TODO,
+                LocalDateTime.of(2031, 1, 1, 15, 15)
+        );
+
+        repository.saveAll(List.of(task1, task2, task3));
+
+        LocalDateTime filterDate = LocalDateTime.of(2030, 7, 1, 15, 15);
+        Specification<Task> specification = TaskSpecification.dueBefore(filterDate);
+
+        var result = repository.findAll(specification, Pageable.unpaged());
+
+        assertEquals(2, result.getTotalElements());
+
+        assertTrue(
+                result.getContent().stream()
+                        .allMatch(task -> task.getDueDate().isBefore(filterDate))
+        );
+    }
+
+    @Test
+    void dueAfter_ShouldReturnMatchingTasks() {
+        Task task1 = buildTask(
+                "Task",
+                TaskStatus.TODO,
+                LocalDateTime.of(2030, 1, 1, 15, 15)
+        );
+        Task task2 = buildTask(
+                "Task",
+                TaskStatus.TODO,
+                LocalDateTime.of(2030, 6, 1, 15, 15)
+        );
+        Task task3 = buildTask(
+                "Task",
+                TaskStatus.TODO,
+                LocalDateTime.of(2031, 1, 1, 15, 15)
+        );
+
+        repository.saveAll(List.of(task1, task2, task3));
+
+        LocalDateTime filterDate = LocalDateTime.of(2030, 3, 1, 15, 15);
+        Specification<Task> specification = TaskSpecification.dueAfter(filterDate);
+
+        var result = repository.findAll(specification, Pageable.unpaged());
+
+        assertEquals(2, result.getTotalElements());
+
+        assertTrue(
+                result.getContent().stream()
+                        .allMatch(task -> task.getDueDate().isAfter(filterDate))
+        );
     }
 }
